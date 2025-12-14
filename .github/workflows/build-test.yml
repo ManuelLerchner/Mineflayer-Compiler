@@ -1,0 +1,53 @@
+name: Build Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build TypeScript
+      run: npm run build
+
+    - name: Verify build output exists
+      run: |
+        if [ ! -d "dist" ]; then
+          echo "Error: dist directory not found"
+          exit 1
+        fi
+        if [ ! -f "dist/main.js" ]; then
+          echo "Error: dist/main.js not found"
+          exit 1
+        fi
+        echo "Build output verified successfully"
+
+    - name: Check for HTML code output
+      run: |
+        if [ -f "node_modules/mineflayer-statemachine/web/index.html" ]; then
+          echo "HTML file found: node_modules/mineflayer-statemachine/web/index.html"
+          echo "HTML content preview:"
+          head -n 20 node_modules/mineflayer-statemachine/web/index.html
+          echo "HTML verification successful"
+        else
+          echo "Error: HTML file not found in mineflayer-statemachine"
+          exit 1
+        fi
